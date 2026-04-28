@@ -1,0 +1,18 @@
+//
+//  Mahjong_projectTests.swift
+//  Mahjong projectTests
+//
+//  Created by Anulfito on 4/28/26.
+//
+
+import Testing
+
+struct Mahjong_projectTests {
+
+    @Test func example() async throws {
+        // Write your test here and use APIs like `#expect(...)` to check expected conditions.
+        // Swift Testing Documentation
+        // https://developer.apple.com/documentation/testing
+    }
+
+}
