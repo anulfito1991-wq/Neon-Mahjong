@@ -9,6 +9,8 @@ enum ScreenshotScene: String, CaseIterable {
     case layouts     // Layout picker with all three options
     case stats       // Stats screen pre-populated with attractive numbers
     case win         // End-game overlay celebrating a win
+    case settings    // Settings screen — used as IAP review screenshot for Remove Ads
+    case themes      // Settings → Themes sheet — used as IAP review screenshot for theme packs
 
     var fileName: String { "\(rawValue).png" }
 }

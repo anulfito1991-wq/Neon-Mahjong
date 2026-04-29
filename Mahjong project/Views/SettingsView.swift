@@ -159,6 +159,11 @@ struct SettingsView: View {
         .sheet(isPresented: $showingThemes) {
             ThemesView(onClose: { showingThemes = false })
         }
+        .onAppear {
+            if ScreenshotMode.requestedScene == .themes {
+                showingThemes = true
+            }
+        }
     }
 
     private var topBar: some View {

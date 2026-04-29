@@ -68,6 +68,8 @@ struct ContentView: View {
                     screen = .game(session)
                 case .stats:
                     screen = .stats
+                case .settings, .themes:
+                    screen = .settings
                 }
             }
         }

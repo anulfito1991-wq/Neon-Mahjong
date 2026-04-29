@@ -29,6 +29,12 @@ final class ScreenshotTests: XCTestCase {
     @MainActor
     func test_capture_win()     throws { try capture(scene: "win") }
 
+    @MainActor
+    func test_capture_settings() throws { try capture(scene: "settings") }
+
+    @MainActor
+    func test_capture_themes()   throws { try capture(scene: "themes") }
+
     // MARK: - Helpers
 
     @MainActor
