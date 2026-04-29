@@ -10,7 +10,7 @@ Everything below is **paste-ready** for App Store Connect. Sections map 1:1 to t
 |---|---|---|
 | **App Name** | `Neon Mahjong Solitaire` | 22 chars (max 30). Keeps "Mahjong" + "Solitaire" both in the name for ASO — these are the two highest-volume search terms in the category. |
 | **Subtitle** | `Match Tiles · Daily Puzzles` | 28 chars (max 30). Subtitle is heavily weighted for search; packs two more keyword phrases. |
-| **Bundle ID** | `anulfito.Mahjong-project` | (already set in Xcode) |
+| **Bundle ID** | `com.AnulfoAcosta.neonmahjong` | (set in Xcode, matches NeonBlocks pattern) |
 | **SKU** | `neonmahjong001` | Internal-only; any unique string works. |
 | **Primary Language** | English (U.S.) | |
 
@@ -173,9 +173,9 @@ Thanks for playing!
 
 | Field | Value | Notes |
 |---|---|---|
-| **Support URL** | `https://anulfito.github.io/neonmahjong/` | Reuse the same GitHub Pages site you used for NeonBlocks. Add a `/neonmahjong/` subpath with privacy policy + support email. |
-| **Marketing URL** | *(optional)* | Same as above, or skip. |
-| **Privacy Policy URL** | `https://anulfito.github.io/neonmahjong/privacy.html` | **Required.** Must be live before submission. |
+| **Support URL** | `https://anulfito1991-wq.github.io/Neon-Mahjong-site/support.html` | Live · serves the FAQ + contact email. |
+| **Marketing URL** | `https://anulfito1991-wq.github.io/Neon-Mahjong-site/` | Live · landing page. Optional but recommended. |
+| **Privacy Policy URL** | `https://anulfito1991-wq.github.io/Neon-Mahjong-site/privacy.html` | Live · **required**. Update this page when AdMob lands in v1.2. |
 
 ---
 
