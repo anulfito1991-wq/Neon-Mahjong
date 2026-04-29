@@ -1,64 +1,223 @@
 import Foundation
 import Observation
 import UIKit
+import GoogleMobileAds
+import AppTrackingTransparency
 
-/// Owns the rewarded-ad lifecycle. Today this is a STUB that auto-grants the
-/// reward after a short simulated delay so the app's UX flows are real and
-/// testable. When you wire in the real AdMob SDK, only this file changes.
+/// Owns the rewarded + interstitial ad lifecycle. Initialization order:
 ///
-/// **To go live with real ads:**
-///
-/// 1. In Xcode, File → Add Package Dependencies… and add
-///    `https://github.com/googleads/swift-package-manager-google-mobile-ads`
-///    targeting `Up to Next Major: 12.0.0` (or current).
-/// 2. Add to Info.plist (via INFOPLIST_KEY_GADApplicationIdentifier build
-///    setting): your AdMob app ID, e.g. `ca-app-pub-XXXX~YYYY`.
-/// 3. Add `NSUserTrackingUsageDescription` for ATT, plus the SKAdNetwork
-///    identifiers AdMob requires (see Google's docs).
-/// 4. Add a `PrivacyInfo.xcprivacy` manifest declaring tracking domains.
-/// 5. Replace `await runStub(...)` below with `await loadAndPresentRewardedAd(...)`
-///    using `RewardedAd.load(with:request:)` and `present(from:userDidEarnReward:)`.
+///   1. App launch → `AdManager.shared.bootstrap()` requests ATT consent and,
+///      regardless of the response, starts the Google Mobile Ads SDK.
+///   2. After SDK starts, `preloadRewarded()` and `preloadInterstitial()` warm
+///      the ad cache so the next show is instant.
+///   3. Game flow:
+///        - Out of free hints → `showRewarded(.extraHint)` → returns true if
+///          the user watched to completion.
+///        - Game over (win or stuck) → `showInterstitialIfDue(from:)` shows
+///          an interstitial every 3rd game finish (skipped entirely when
+///          Remove Ads is owned).
 @MainActor
 @Observable
-final class AdManager {
+final class AdManager: NSObject {
     static let shared = AdManager()
 
     enum RewardKind: String {
         case extraHint
-        case shuffle
-        case streakSave
     }
+
+    // MARK: - Ad unit IDs
+
+    /// Live AdMob production unit IDs for Neon Mahjong.
+    private enum AdUnits {
+        static let rewarded     = "ca-app-pub-9508131695489221/7689208351"
+        static let interstitial = "ca-app-pub-9508131695489221/1534863545"
+    }
+
+    // MARK: - Observed state
 
     private(set) var isPresenting: Bool = false
+    private(set) var didBootstrap: Bool = false
 
-    private init() {}
+    // MARK: - Private state
 
-    /// Test ad unit IDs from Google. Safe to use in development; replace with
-    /// your real unit IDs from AdMob console before App Store release.
-    enum AdUnits {
-        /// Test rewarded — always fills with a sample ad.
-        static let rewardedTest = "ca-app-pub-3940256099942544/1712485313"
-        /// Test interstitial.
-        static let interstitialTest = "ca-app-pub-3940256099942544/4411468910"
+    private var rewardedAd: RewardedAd?
+    private var interstitialAd: InterstitialAd?
+
+    private var rewardContinuation: CheckedContinuation<Bool, Never>?
+    private var rewardEarned: Bool = false
+
+    private var interstitialContinuation: CheckedContinuation<Void, Never>?
+
+    private let interstitialCounterKey = "ads.interstitialCounter"
+    private var interstitialCounter: Int {
+        get { UserDefaults.standard.integer(forKey: interstitialCounterKey) }
+        set { UserDefaults.standard.set(newValue, forKey: interstitialCounterKey) }
     }
 
-    /// Shows a rewarded ad and returns true if the user earned the reward
-    /// (watched to completion). When ads are removed via IAP, this short-
-    /// circuits to a free reward — premium players never see ads.
-    func showRewarded(_ kind: RewardKind) async -> Bool {
-        if IAPManager.shared.isAdsRemoved {
-            return true
+    /// Show an interstitial after this many game-finishes. Tuned to be visible
+    /// without being annoying — most casual puzzles use 3-5.
+    private let interstitialEveryNGames = 3
+
+    // MARK: - Bootstrap
+
+    /// Call once at app launch. Requests ATT consent (whichever response is
+    /// fine — ads still serve), starts the Mobile Ads SDK, then preloads.
+    /// Safe to call multiple times.
+    func bootstrap() async {
+        guard !didBootstrap else { return }
+        if ScreenshotMode.isActive {
+            didBootstrap = true
+            return
         }
-        return await runStub(kind: kind)
+        await requestTrackingConsent()
+        let _ = await MobileAds.shared.start()
+        didBootstrap = true
+        await preloadRewarded()
+        await preloadInterstitial()
     }
 
-    /// STUB: simulates an ad load + view, granting the reward after a short
-    /// delay. Replace with real GoogleMobileAds calls once the SDK is wired up.
-    private func runStub(kind: RewardKind) async -> Bool {
+    private func requestTrackingConsent() async {
+        guard ATTrackingManager.trackingAuthorizationStatus == .notDetermined else { return }
+        await withCheckedContinuation { continuation in
+            ATTrackingManager.requestTrackingAuthorization { _ in
+                continuation.resume()
+            }
+        }
+    }
+
+    // MARK: - Rewarded
+
+    /// Loads (if needed) and presents a rewarded ad. Returns true when the
+    /// user watched to completion AND earned the reward, false on dismissal,
+    /// load failure, or when there's no top-most view controller.
+    /// Short-circuits to `true` when Remove Ads is owned.
+    func showRewarded(_ kind: RewardKind) async -> Bool {
+        if IAPManager.shared.isAdsRemoved { return true }
+        if ScreenshotMode.isActive { return true }
+
+        if rewardedAd == nil {
+            await preloadRewarded()
+        }
+        guard let ad = rewardedAd, let rootVC = Self.topMostViewController() else {
+            return false
+        }
+        rewardedAd = nil
+        return await present(rewarded: ad, from: rootVC)
+    }
+
+    private func present(rewarded ad: RewardedAd,
+                         from rootVC: UIViewController) async -> Bool {
+        rewardEarned = false
+        ad.fullScreenContentDelegate = self
         isPresenting = true
-        defer { isPresenting = false }
-        try? await Task.sleep(nanoseconds: 800_000_000)
-        // Always succeeds in stub mode so dev/test flows are uninterrupted.
-        return true
+        return await withCheckedContinuation { continuation in
+            rewardContinuation = continuation
+            ad.present(from: rootVC) { [weak self] in
+                self?.rewardEarned = true
+            }
+        }
+    }
+
+    private func preloadRewarded() async {
+        do {
+            let ad = try await RewardedAd.load(
+                with: AdUnits.rewarded,
+                request: Request()
+            )
+            rewardedAd = ad
+        } catch {
+            print("[AdManager] rewarded load failed: \(error)")
+        }
+    }
+
+    // MARK: - Interstitial
+
+    /// Increments the game-finish counter and shows an interstitial once per
+    /// `interstitialEveryNGames` finishes. No-op when Remove Ads is owned.
+    func showInterstitialIfDue() async {
+        if IAPManager.shared.isAdsRemoved { return }
+        if ScreenshotMode.isActive { return }
+
+        interstitialCounter += 1
+        guard interstitialCounter % interstitialEveryNGames == 0 else { return }
+        if interstitialAd == nil {
+            await preloadInterstitial()
+        }
+        guard let ad = interstitialAd, let rootVC = Self.topMostViewController() else {
+            return
+        }
+        interstitialAd = nil
+        await present(interstitial: ad, from: rootVC)
+    }
+
+    private func present(interstitial ad: InterstitialAd,
+                         from rootVC: UIViewController) async {
+        ad.fullScreenContentDelegate = self
+        isPresenting = true
+        await withCheckedContinuation { continuation in
+            interstitialContinuation = continuation
+            ad.present(from: rootVC)
+        }
+    }
+
+    private func preloadInterstitial() async {
+        do {
+            let ad = try await InterstitialAd.load(
+                with: AdUnits.interstitial,
+                request: Request()
+            )
+            interstitialAd = ad
+        } catch {
+            print("[AdManager] interstitial load failed: \(error)")
+        }
+    }
+
+    // MARK: - View-controller lookup
+
+    private static func topMostViewController() -> UIViewController? {
+        let scenes = UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }
+        guard let window = scenes.first(where: { $0.activationState == .foregroundActive })?
+                .windows.first(where: \.isKeyWindow) ?? scenes.first?.windows.first,
+              var top = window.rootViewController else { return nil }
+        while let presented = top.presentedViewController { top = presented }
+        return top
+    }
+}
+
+// MARK: - FullScreenContentDelegate
+
+extension AdManager: @preconcurrency FullScreenContentDelegate {
+    func adDidDismissFullScreenContent(_ ad: any FullScreenPresentingAd) {
+        isPresenting = false
+        if let cont = rewardContinuation {
+            rewardContinuation = nil
+            let earned = rewardEarned
+            rewardEarned = false
+            cont.resume(returning: earned)
+            Task { await preloadRewarded() }
+        }
+        if let cont = interstitialContinuation {
+            interstitialContinuation = nil
+            cont.resume()
+            Task { await preloadInterstitial() }
+        }
+    }
+
+    func ad(_ ad: any FullScreenPresentingAd,
+            didFailToPresentFullScreenContentWithError error: any Error) {
+        isPresenting = false
+        print("[AdManager] failed to present: \(error)")
+        if let cont = rewardContinuation {
+            rewardContinuation = nil
+            rewardEarned = false
+            cont.resume(returning: false)
+            Task { await preloadRewarded() }
+        }
+        if let cont = interstitialContinuation {
+            interstitialContinuation = nil
+            cont.resume()
+            Task { await preloadInterstitial() }
+        }
     }
 }

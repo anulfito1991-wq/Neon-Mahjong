@@ -12,6 +12,11 @@ struct Mahjong_projectApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .task {
+                    // Bootstrap ads (ATT prompt + SDK start) on first appearance.
+                    // No-op in screenshot mode; safe to call multiple times.
+                    await AdManager.shared.bootstrap()
+                }
         }
     }
 }

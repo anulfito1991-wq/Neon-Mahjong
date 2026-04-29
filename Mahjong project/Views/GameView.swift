@@ -45,6 +45,14 @@ struct GameView: View {
                 vm.loadScreenshotState(scene)
             }
         }
+        .onChange(of: vm.phase) { _, newPhase in
+            // Show an interstitial whenever the game ends (win or stuck).
+            // AdManager handles the every-Nth-game pacing internally and
+            // skips entirely when Remove Ads is owned.
+            if newPhase == .won || newPhase == .stuck {
+                Task { await AdManager.shared.showInterstitialIfDue() }
+            }
+        }
         .onDisappear { vm.stopTimer() }
     }
 }
