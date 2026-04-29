@@ -1,0 +1,39 @@
+# macOS
+.DS_Store
+
+# Xcode
+build/
+DerivedData/
+*.xcuserstate
+xcuserdata/
+*.xcscmblueprint
+*.xccheckout
+*.moved-aside
+*.hmap
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# Swift Package Manager
+.swiftpm/
+.build/
+Packages/
+Package.resolved
+
+# fastlane
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots/
+fastlane/test_output
+
+# Project-specific build artifacts (regenerable)
+.screenshot-results/
+Screenshots/_dryrun/
+
+# Site repo lives inside the project folder but is its own git repo
+Neon-Mahjong-site/
+
+# Editor scratch
+.vscode/
+*.swp
+*.bak

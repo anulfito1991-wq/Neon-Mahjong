@@ -1,0 +1,79 @@
+{
+  "identifier" : "neon-mahjong-storekit",
+  "nonRenewingSubscriptions" : [],
+  "products" : [
+    {
+      "displayPrice" : "1.99",
+      "familyShareable" : false,
+      "internalID" : "C0001",
+      "localizations" : [
+        {
+          "description" : "Sunset reds, deep oranges, and gold. Warm and dramatic.",
+          "displayName" : "Solar Flare Theme",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "com.anulfito.mahjong.theme.solarflare",
+      "referenceName" : "Solar Flare Theme",
+      "type" : "NonConsumable"
+    },
+    {
+      "displayPrice" : "1.99",
+      "familyShareable" : false,
+      "internalID" : "C0002",
+      "localizations" : [
+        {
+          "description" : "Hot magenta, lavender, and electric purple. Florals at night.",
+          "displayName" : "Cyberbloom Theme",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "com.anulfito.mahjong.theme.cyberbloom",
+      "referenceName" : "Cyberbloom Theme",
+      "type" : "NonConsumable"
+    },
+    {
+      "displayPrice" : "1.99",
+      "familyShareable" : false,
+      "internalID" : "C0003",
+      "localizations" : [
+        {
+          "description" : "Cool teals, aquamarines, and deep blues. Below the waves.",
+          "displayName" : "Ocean Drift Theme",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "com.anulfito.mahjong.theme.oceandrift",
+      "referenceName" : "Ocean Drift Theme",
+      "type" : "NonConsumable"
+    },
+    {
+      "displayPrice" : "3.99",
+      "familyShareable" : false,
+      "internalID" : "F0001",
+      "localizations" : [
+        {
+          "description" : "Removes all ads forever and unlocks unlimited hints. One-time purchase.",
+          "displayName" : "Remove Ads",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "com.anulfito.mahjong.removeads",
+      "referenceName" : "Remove Ads",
+      "type" : "NonConsumable"
+    }
+  ],
+  "settings" : {
+    "_applicationInternalID" : "0000000000",
+    "_developerTeamID" : "ANULFITOTEAM",
+    "_failTransactionsEnabled" : false,
+    "_locale" : "en_US",
+    "_storefront" : "USA",
+    "_storeKitErrors" : []
+  },
+  "subscriptionGroups" : [],
+  "version" : {
+    "major" : 4,
+    "minor" : 0
+  }
+}
