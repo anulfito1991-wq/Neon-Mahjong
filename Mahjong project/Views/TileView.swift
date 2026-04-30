@@ -13,27 +13,19 @@ struct TileView: View {
     private var color: Color { tile.kind.neonColor }
 
     var body: some View {
-        ZStack {
-            // Base
-            RoundedRectangle(cornerRadius: size.width * 0.18, style: .continuous)
-                .fill(
-                    LinearGradient(
-                        colors: [
-                            NeonPalette.tileFace,
-                            NeonPalette.tileFace.opacity(0.7)
-                        ],
-                        startPoint: .top,
-                        endPoint: .bottom
-                    )
-                )
+        let radius = size.width * 0.18
+        return ZStack {
+            // Painted river-stone face — gradient + grain + inner shadow.
+            // Per-tile seed gives each stone a unique speckle pattern.
+            PaintedTileFace(seed: tileSeed, cornerRadius: radius)
 
             // Inner border (suit-tinted on free tiles)
-            RoundedRectangle(cornerRadius: size.width * 0.18, style: .continuous)
+            RoundedRectangle(cornerRadius: radius, style: .continuous)
                 .stroke(borderColor, lineWidth: borderWidth)
 
             // Selection / hint outer halo
             if isSelected || isHinted {
-                RoundedRectangle(cornerRadius: size.width * 0.18, style: .continuous)
+                RoundedRectangle(cornerRadius: radius, style: .continuous)
                     .stroke(haloColor, lineWidth: 2)
                     .blur(radius: 2)
                     .opacity(0.9)
@@ -62,7 +54,7 @@ struct TileView: View {
         .modifier(MismatchShake(active: isMismatched))
         .animation(.spring(response: 0.25, dampingFraction: 0.7), value: isSelected)
         .animation(.easeInOut(duration: 0.2), value: isHinted)
-        .contentShape(RoundedRectangle(cornerRadius: size.width * 0.18, style: .continuous))
+        .contentShape(RoundedRectangle(cornerRadius: radius, style: .continuous))
         .onTapGesture {
             if isFree { onTap() }
         }
@@ -104,6 +96,12 @@ struct TileView: View {
         if isHinted   { return 1.2 }
         if isFree     { return 0.7 }
         return 0.25
+    }
+
+    /// Per-tile seed for the painted-face speckle. Tile.id is a UUID; mix its
+    /// hash bits into a UInt64 so each stone has a unique grain.
+    private var tileSeed: UInt64 {
+        UInt64(bitPattern: Int64(tile.id.hashValue))
     }
 }
 

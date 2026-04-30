@@ -67,40 +67,14 @@ extension TileKind {
     }
 }
 
-/// Background gradient used across menu and game screens. Uses a warm
-/// lantern-glow ambient (yellow top-leading, orange bottom-trailing) layered
-/// over the theme's dark base. The radial glows give the scene depth without
-/// fighting the foreground text.
+/// Background view used across menu and game screens. Delegates to
+/// `PaintedSceneBackground`, which renders a procedural "painted floor"
+/// with noise grain, soft warm patches, and an edge vignette. Kept as a
+/// thin wrapper so existing views (`MenuView`, `GameView`, etc.) don't
+/// need to be touched when the painted implementation evolves.
 struct NeonBackground: View {
     var body: some View {
-        ZStack {
-            LinearGradient(
-                colors: [NeonPalette.bg1, NeonPalette.bg0, NeonPalette.bg2],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-            // Warm ambient — soft lantern in upper-left
-            RadialGradient(
-                colors: [NeonPalette.yellow.opacity(0.16), .clear],
-                center: .topLeading, startRadius: 20, endRadius: 480
-            )
-            // Cooler counterpoint in bottom-right keeps the scene from feeling flat
-            RadialGradient(
-                colors: [NeonPalette.orange.opacity(0.10), .clear],
-                center: .bottomTrailing, startRadius: 20, endRadius: 520
-            )
-            // Subtle center brightness — anchors the eye without obscuring tiles
-            RadialGradient(
-                colors: [Color.white.opacity(0.04), .clear],
-                center: .center, startRadius: 0, endRadius: 320
-            )
-            // Dark vignette around the edges for focus
-            RadialGradient(
-                colors: [.clear, Color.black.opacity(0.35)],
-                center: .center, startRadius: 280, endRadius: 720
-            )
-        }
-        .ignoresSafeArea()
+        PaintedSceneBackground()
     }
 }
 
