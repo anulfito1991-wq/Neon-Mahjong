@@ -27,7 +27,7 @@ final class AdManager: NSObject {
 
     // MARK: - Ad unit IDs
 
-    /// Live AdMob production unit IDs for Neon Mahjong.
+    /// Live AdMob production unit IDs for Zen Mahjong.
     private enum AdUnits {
         static let rewarded     = "ca-app-pub-9508131695489221/7689208351"
         static let interstitial = "ca-app-pub-9508131695489221/1534863545"

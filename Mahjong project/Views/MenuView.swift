@@ -58,17 +58,17 @@ struct MenuView: View {
 
     private var titleBlock: some View {
         VStack(spacing: 4) {
-            Text("NEON")
+            Text("ZEN")
                 .font(.system(size: 60, weight: .black, design: .rounded))
                 .tracking(8)
-                .foregroundStyle(NeonPalette.cyan)
-                .neonGlow(NeonPalette.cyan, radius: 18, intensity: 1.3)
+                .foregroundStyle(NeonPalette.yellow)
+                .neonGlow(NeonPalette.yellow, radius: 14, intensity: 0.9)
             Text("MAHJONG")
                 .font(.system(size: 42, weight: .heavy, design: .rounded))
                 .tracking(6)
-                .foregroundStyle(NeonPalette.pink)
-                .neonGlow(NeonPalette.pink, radius: 14, intensity: 1.1)
-            Text("A modern take on a timeless puzzle")
+                .foregroundStyle(NeonPalette.white)
+                .neonGlow(NeonPalette.orange, radius: 10, intensity: 0.7)
+            Text("Quiet stones, patient mind")
                 .font(.system(size: 13, weight: .medium, design: .rounded))
                 .foregroundStyle(NeonPalette.textDim)
                 .padding(.top, 8)

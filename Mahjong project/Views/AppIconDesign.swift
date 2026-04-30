@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// The Neon Mahjong app icon, rendered programmatically. Used both for the
+/// The Zen Mahjong app icon, rendered programmatically. Used both for the
 /// in-app "About" preview and for one-shot PNG export via ImageRenderer.
 struct AppIconDesign: View {
     /// Standard iOS icon canvas: 1024×1024 (icon images are square; iOS rounds
@@ -9,28 +9,28 @@ struct AppIconDesign: View {
 
     var body: some View {
         ZStack {
-            // Deep gradient background — same family as the app's NeonBackground.
+            // Warm-charcoal stone-garden gradient (matches Stone Garden theme bg).
             LinearGradient(
                 colors: [
-                    Color(red: 0.04, green: 0.02, blue: 0.10),
-                    Color(red: 0.10, green: 0.04, blue: 0.22),
-                    Color(red: 0.02, green: 0.06, blue: 0.18)
+                    Color(red: 0.13, green: 0.11, blue: 0.09),
+                    Color(red: 0.18, green: 0.15, blue: 0.12),
+                    Color(red: 0.08, green: 0.07, blue: 0.06)
                 ],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
             )
 
-            // Soft glows in opposite corners.
+            // Soft lantern glows in opposite corners — warm gold + ember.
             RadialGradient(
-                colors: [NeonPalette.purple.opacity(0.55), .clear],
-                center: .topTrailing, startRadius: 60, endRadius: 700
+                colors: [Color(red: 0.85, green: 0.70, blue: 0.38).opacity(0.35), .clear],
+                center: .topTrailing, startRadius: 80, endRadius: 760
             )
             RadialGradient(
-                colors: [NeonPalette.cyan.opacity(0.40), .clear],
-                center: .bottomLeading, startRadius: 60, endRadius: 700
+                colors: [Color(red: 0.85, green: 0.55, blue: 0.36).opacity(0.25), .clear],
+                center: .bottomLeading, startRadius: 80, endRadius: 760
             )
 
-            // Three stacked tiles, fanned out (like a mini Mahjong stack).
+            // Three stacked stones, fanned out.
             iconTileStack
         }
         .frame(width: AppIconDesign.canonicalSize, height: AppIconDesign.canonicalSize)
@@ -40,50 +40,42 @@ struct AppIconDesign: View {
 
     private var iconTileStack: some View {
         ZStack {
-            iconTile(text: "中", color: NeonPalette.red)
+            iconTile(text: "中", accent: Color(red: 0.85, green: 0.38, blue: 0.32)) // ember
                 .rotationEffect(.degrees(-12))
                 .offset(x: -120, y: 80)
-            iconTile(text: "9", color: NeonPalette.cyan, sub: "●")
+            iconTile(text: "禪", accent: Color(red: 0.85, green: 0.70, blue: 0.38)) // aged gold
                 .rotationEffect(.degrees(0))
-            iconTile(text: "發", color: NeonPalette.green)
+            iconTile(text: "發", accent: Color(red: 0.58, green: 0.72, blue: 0.55)) // moss
                 .rotationEffect(.degrees(12))
                 .offset(x: 120, y: -80)
         }
     }
 
-    private func iconTile(text: String, color: Color, sub: String? = nil) -> some View {
+    private func iconTile(text: String, accent: Color) -> some View {
         ZStack {
-            RoundedRectangle(cornerRadius: 60, style: .continuous)
+            // River-stone face — smooth, slightly warmer than background.
+            RoundedRectangle(cornerRadius: 70, style: .continuous)
                 .fill(
                     LinearGradient(
                         colors: [
-                            Color(red: 0.10, green: 0.08, blue: 0.18),
-                            Color(red: 0.14, green: 0.10, blue: 0.24)
+                            Color(red: 0.22, green: 0.20, blue: 0.18),
+                            Color(red: 0.16, green: 0.14, blue: 0.12)
                         ],
                         startPoint: .top,
                         endPoint: .bottom
                     )
                 )
                 .overlay(
-                    RoundedRectangle(cornerRadius: 60, style: .continuous)
-                        .stroke(color.opacity(0.85), lineWidth: 8)
+                    RoundedRectangle(cornerRadius: 70, style: .continuous)
+                        .stroke(Color(red: 0.35, green: 0.31, blue: 0.27), lineWidth: 4)
                 )
                 .frame(width: 360, height: 460)
-                .shadow(color: color.opacity(0.7), radius: 30)
-                .shadow(color: color.opacity(0.5), radius: 60)
+                .shadow(color: .black.opacity(0.55), radius: 24, y: 10)
 
-            VStack(spacing: 8) {
-                Text(text)
-                    .font(.system(size: 220, weight: .heavy, design: .rounded))
-                    .foregroundStyle(color)
-                    .shadow(color: color.opacity(0.95), radius: 12)
-                    .shadow(color: color.opacity(0.7), radius: 30)
-                if let sub {
-                    Text(sub)
-                        .font(.system(size: 90, weight: .semibold, design: .rounded))
-                        .foregroundStyle(color.opacity(0.85))
-                }
-            }
+            Text(text)
+                .font(.system(size: 240, weight: .heavy, design: .serif))
+                .foregroundStyle(accent)
+                .shadow(color: accent.opacity(0.45), radius: 14)
         }
     }
 }

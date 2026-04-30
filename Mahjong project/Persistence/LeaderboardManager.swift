@@ -10,7 +10,7 @@ import Observation
 /// **Setup required outside this file:**
 /// 1. In Xcode → Signing & Capabilities, add the **Game Center** capability
 ///    (creates `Mahjong project.entitlements` with `com.apple.developer.game-center`).
-/// 2. In App Store Connect → My Apps → Neon Mahjong → Services → Game Center,
+/// 2. In App Store Connect → My Apps → Zen Mahjong → Services → Game Center,
 ///    enable Game Center.
 /// 3. Add three leaderboards under Game Center → Leaderboards with these IDs:
 ///       \(BoardLayout.neonPyramid.id) → "Neon Pyramid · Best Time"

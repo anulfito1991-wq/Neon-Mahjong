@@ -15,7 +15,7 @@ enum AppIconExporter {
         guard let url = FileManager.default
             .urls(for: .documentDirectory, in: .userDomainMask)
             .first?
-            .appendingPathComponent("NeonMahjong-AppIcon-1024.png")
+            .appendingPathComponent("ZenMahjong-AppIcon-1024.png")
         else { return nil }
         do {
             try data.write(to: url, options: .atomic)

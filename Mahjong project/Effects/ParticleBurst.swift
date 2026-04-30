@@ -1,7 +1,7 @@
 import SwiftUI
 
-/// A short-lived neon burst of glowing dots, spawned at a point in board
-/// coordinates whenever a pair clears. Lives for ~0.8s then vanishes.
+/// A soft pond-ripple, spawned at a point in board coordinates whenever a
+/// pair clears. Two concentric rings spread outward and fade. Lives for ~0.9s.
 struct BurstSpec: Identifiable, Equatable {
     let id = UUID()
     let position: CGPoint
@@ -11,33 +11,33 @@ struct BurstSpec: Identifiable, Equatable {
 
 struct ParticleBurst: View {
     let spec: BurstSpec
-    let particleCount: Int = 12
-    let radius: CGFloat = 38
-    let lifetime: Double = 0.7
+    let lifetime: Double = 0.9
 
     @State private var progress: CGFloat = 0
 
     var body: some View {
         ZStack {
-            ForEach(0..<particleCount, id: \.self) { i in
-                let angle = Double(i) / Double(particleCount) * 2 * .pi
-                let dx = cos(angle) * Double(radius * progress)
-                let dy = sin(angle) * Double(radius * progress)
-                Circle()
-                    .fill(spec.color)
-                    .frame(width: 6, height: 6)
-                    .offset(x: dx, y: dy)
-                    .opacity(Double(1 - progress))
-                    .shadow(color: spec.color.opacity(0.9), radius: 6)
-                    .shadow(color: spec.color.opacity(0.6), radius: 12)
-            }
-            // Central flash
+            // Outer ring — wider, fainter
             Circle()
-                .fill(spec.color.opacity(0.35))
-                .frame(width: 30, height: 30)
-                .scaleEffect(1 + 1.4 * progress)
+                .stroke(spec.color.opacity(0.55), lineWidth: 2)
+                .frame(width: 24, height: 24)
+                .scaleEffect(1 + 3.4 * progress)
                 .opacity(Double(1 - progress))
-                .blur(radius: 6)
+
+            // Inner ring — tighter, slightly brighter, lags behind
+            Circle()
+                .stroke(spec.color.opacity(0.75), lineWidth: 1.5)
+                .frame(width: 18, height: 18)
+                .scaleEffect(1 + 2.2 * progress)
+                .opacity(Double(1 - progress * 0.85))
+
+            // Soft center glow that fades quickly
+            Circle()
+                .fill(spec.color.opacity(0.20))
+                .frame(width: 22, height: 22)
+                .scaleEffect(1 + 0.5 * progress)
+                .opacity(Double(1 - progress))
+                .blur(radius: 4)
         }
         .position(spec.position)
         .allowsHitTesting(false)

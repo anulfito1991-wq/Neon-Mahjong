@@ -24,12 +24,12 @@ final class ThemeStore {
     private init() {
         let defaults = UserDefaults.standard
         let stored = defaults.string(forKey: Keys.active)
-        self.activeTheme = Theme.all.first { $0.id == stored } ?? .classic
+        self.activeTheme = Theme.all.first { $0.id == stored } ?? .stoneGarden
 
         if let arr = defaults.stringArray(forKey: Keys.unlocked) {
-            self.unlockedIDs = Set(arr).union([Theme.classic.id])
+            self.unlockedIDs = Set(arr).union([Theme.stoneGarden.id])
         } else {
-            self.unlockedIDs = [Theme.classic.id]
+            self.unlockedIDs = [Theme.stoneGarden.id]
         }
     }
 
@@ -41,13 +41,13 @@ final class ThemeStore {
         UserDefaults.standard.set(theme.id, forKey: Keys.active)
     }
 
-    /// Sets the unlocked set from current entitlements. Always includes classic.
+    /// Sets the unlocked set from current entitlements. Always includes Stone Garden.
     func setUnlocked(_ ids: Set<String>) {
-        unlockedIDs = ids.union([Theme.classic.id])
+        unlockedIDs = ids.union([Theme.stoneGarden.id])
         UserDefaults.standard.set(Array(unlockedIDs), forKey: Keys.unlocked)
-        // If active theme is no longer unlocked (e.g. refund), fall back to classic.
+        // If active theme is no longer unlocked (e.g. refund), fall back to Stone Garden.
         if !unlockedIDs.contains(activeTheme.id) {
-            select(.classic)
+            select(.stoneGarden)
         }
     }
 
