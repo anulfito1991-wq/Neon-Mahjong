@@ -62,16 +62,16 @@ struct MenuView: View {
                 .font(.system(size: 56, weight: .black, design: .rounded))
                 .tracking(8)
                 .foregroundStyle(NeonPalette.yellow)
-                .neonGlow(NeonPalette.yellow, radius: 14, intensity: 0.9)
+                .neonGlow(NeonPalette.yellow, radius: 18, intensity: 0.55)
             Text("ZEN GARDEN")
                 .font(.system(size: 28, weight: .heavy, design: .rounded))
                 .tracking(8)
                 .foregroundStyle(NeonPalette.white)
-                .neonGlow(NeonPalette.orange, radius: 8, intensity: 0.6)
+                .neonGlow(NeonPalette.orange, radius: 12, intensity: 0.4)
             Text("Quiet stones, patient mind")
                 .font(.system(size: 13, weight: .medium, design: .rounded))
                 .foregroundStyle(NeonPalette.textDim)
-                .padding(.top, 8)
+                .padding(.top, 10)
         }
     }
 

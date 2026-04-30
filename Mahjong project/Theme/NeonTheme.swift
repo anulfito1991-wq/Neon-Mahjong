@@ -67,29 +67,48 @@ extension TileKind {
     }
 }
 
-/// Background gradient used across menu and game screens.
+/// Background gradient used across menu and game screens. Uses a warm
+/// lantern-glow ambient (yellow top-leading, orange bottom-trailing) layered
+/// over the theme's dark base. The radial glows give the scene depth without
+/// fighting the foreground text.
 struct NeonBackground: View {
     var body: some View {
         ZStack {
             LinearGradient(
-                colors: [NeonPalette.bg0, NeonPalette.bg1, NeonPalette.bg2],
+                colors: [NeonPalette.bg1, NeonPalette.bg0, NeonPalette.bg2],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
             )
+            // Warm ambient — soft lantern in upper-left
             RadialGradient(
-                colors: [NeonPalette.purple.opacity(0.18), .clear],
-                center: .topLeading, startRadius: 10, endRadius: 380
+                colors: [NeonPalette.yellow.opacity(0.16), .clear],
+                center: .topLeading, startRadius: 20, endRadius: 480
             )
+            // Cooler counterpoint in bottom-right keeps the scene from feeling flat
             RadialGradient(
-                colors: [NeonPalette.cyan.opacity(0.14), .clear],
-                center: .bottomTrailing, startRadius: 10, endRadius: 420
+                colors: [NeonPalette.orange.opacity(0.10), .clear],
+                center: .bottomTrailing, startRadius: 20, endRadius: 520
+            )
+            // Subtle center brightness — anchors the eye without obscuring tiles
+            RadialGradient(
+                colors: [Color.white.opacity(0.04), .clear],
+                center: .center, startRadius: 0, endRadius: 320
+            )
+            // Dark vignette around the edges for focus
+            RadialGradient(
+                colors: [.clear, Color.black.opacity(0.35)],
+                center: .center, startRadius: 280, endRadius: 720
             )
         }
         .ignoresSafeArea()
     }
 }
 
-/// Adds a layered neon glow around a view.
+/// Adds a soft ambient glow around a view. Two outer shadow layers form a
+/// halo without an inner-tight shadow — that inner layer (in the previous
+/// implementation) visually thickened text strokes and made glyphs look
+/// blurry against the warm earth-tone palettes. The outer-only stack reads
+/// as "lit from within" while keeping text crisp.
 struct NeonGlow: ViewModifier {
     let color: Color
     var radius: CGFloat = 8
@@ -97,9 +116,8 @@ struct NeonGlow: ViewModifier {
 
     func body(content: Content) -> some View {
         content
-            .shadow(color: color.opacity(0.85 * intensity), radius: radius * 0.5)
-            .shadow(color: color.opacity(0.55 * intensity), radius: radius)
-            .shadow(color: color.opacity(0.35 * intensity), radius: radius * 2)
+            .shadow(color: color.opacity(0.40 * intensity), radius: radius * 0.9)
+            .shadow(color: color.opacity(0.18 * intensity), radius: radius * 1.8)
     }
 }
 
