@@ -134,7 +134,7 @@ struct SettingsView: View {
 
                         section(title: "ABOUT") {
                             HStack {
-                                Text("Zen Mahjong")
+                                Text("Mahjong Zen Garden")
                                     .font(.system(size: 14, weight: .semibold, design: .rounded))
                                     .foregroundStyle(NeonPalette.white)
                                 Spacer()

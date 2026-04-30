@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// The Zen Mahjong app icon, rendered programmatically. Used both for the
+/// The Mahjong Zen Garden app icon, rendered programmatically. Used both for the
 /// in-app "About" preview and for one-shot PNG export via ImageRenderer.
 struct AppIconDesign: View {
     /// Standard iOS icon canvas: 1024×1024 (icon images are square; iOS rounds
