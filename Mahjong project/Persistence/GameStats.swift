@@ -4,6 +4,9 @@ import Observation
 /// Persistent records of player accomplishments. Stored as a single JSON blob
 /// in UserDefaults — small enough that a key/value store is fine.
 struct StatsSnapshot: Codable {
+    static let currentSchemaVersion = 1
+    var schemaVersion: Int = StatsSnapshot.currentSchemaVersion
+
     var gamesPlayed: Int = 0
     var gamesWon: Int = 0
     var totalSeconds: Int = 0
@@ -28,18 +31,11 @@ final class GameStats {
     private let key = "stats.v1"
 
     private init() {
-        if let data = UserDefaults.standard.data(forKey: "stats.v1"),
-           let decoded = try? JSONDecoder().decode(StatsSnapshot.self, from: data) {
-            self.snapshot = decoded
-        } else {
-            self.snapshot = StatsSnapshot()
-        }
+        self.snapshot = SafeStore.load(StatsSnapshot.self, forKey: "stats.v1") ?? StatsSnapshot()
     }
 
     private func save() {
-        if let data = try? JSONEncoder().encode(snapshot) {
-            UserDefaults.standard.set(data, forKey: key)
-        }
+        SafeStore.save(snapshot, forKey: key)
     }
 
     func recordGameStart() {
