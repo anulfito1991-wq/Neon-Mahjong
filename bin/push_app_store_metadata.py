@@ -120,7 +120,7 @@ DESCRIPTION = (
 
 def jwt() -> str:
     out = subprocess.check_output(
-        ["python3", "/Users/anulfito/Desktop/NeonBlocks/NeonBlocks/tools/asc_jwt.py"]
+        ["python3", "/Users/anulfito/Desktop/My IOS APPS/Live/NeonBlocks/NeonBlocks/tools/asc_jwt.py"]
     )
     return out.decode().strip()
 

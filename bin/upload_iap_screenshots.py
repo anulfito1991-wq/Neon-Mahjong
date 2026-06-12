@@ -23,7 +23,7 @@ import urllib.request
 from pathlib import Path
 
 API = "https://api.appstoreconnect.apple.com"
-PROJECT = Path("/Users/anulfito/Desktop/Mahjong project")
+PROJECT = Path("/Users/anulfito/Desktop/My IOS APPS/In-Dev/Mahjong project")
 SHOTS = PROJECT / "Screenshots/iap-review"
 
 # IAP id → review screenshot file
@@ -37,7 +37,7 @@ ASSIGNMENTS = [
 
 def jwt() -> str:
     return subprocess.check_output(
-        ["python3", "/Users/anulfito/Desktop/NeonBlocks/NeonBlocks/tools/asc_jwt.py"]
+        ["python3", "/Users/anulfito/Desktop/My IOS APPS/Live/NeonBlocks/NeonBlocks/tools/asc_jwt.py"]
     ).decode().strip()
 
 
