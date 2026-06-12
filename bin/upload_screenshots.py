@@ -22,8 +22,8 @@ import urllib.request
 from pathlib import Path
 
 API = "https://api.appstoreconnect.apple.com/v1"
-PROJECT = Path("/Users/anulfito/Desktop/Mahjong project")
-VERSION_LOC_ID = "9eac0aed-9f92-4e73-b3dc-d5711d4e4984"
+PROJECT = Path("/Users/anulfito/Desktop/My IOS APPS/In-Dev/Mahjong project")
+VERSION_LOC_ID = "0a471e81-0505-4050-ac58-8b75284bb868"
 
 # Display order matches the order Apple shows screenshots.
 SCENE_ORDER = ["menu", "game", "layouts", "stats", "win"]
@@ -44,7 +44,7 @@ DEVICE_SETS = [
 
 def jwt() -> str:
     return subprocess.check_output(
-        ["python3", "/Users/anulfito/Desktop/NeonBlocks/NeonBlocks/tools/asc_jwt.py"]
+        ["python3", "/Users/anulfito/Desktop/My IOS APPS/Live/NeonBlocks/NeonBlocks/tools/asc_jwt.py"]
     ).decode().strip()
 
 
