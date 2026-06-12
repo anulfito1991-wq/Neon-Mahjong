@@ -29,16 +29,15 @@ struct HUDView: View {
             Text(value)
                 .font(.system(size: 16, weight: .bold, design: .rounded))
                 .foregroundStyle(color)
-                .neonGlow(color, radius: 4, intensity: 0.7)
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 6)
         .background(
             RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .fill(NeonPalette.bg0.opacity(0.7))
+                .fill(.ultraThinMaterial)
                 .overlay(
                     RoundedRectangle(cornerRadius: 12, style: .continuous)
-                        .stroke(color.opacity(0.45), lineWidth: 1)
+                        .stroke(Color.white.opacity(0.12), lineWidth: 1)
                 )
         )
     }
@@ -84,10 +83,10 @@ struct ActionBar: View {
                     .padding(20)
                     .background(
                         RoundedRectangle(cornerRadius: 14, style: .continuous)
-                            .fill(NeonPalette.bg0.opacity(0.95))
+                            .fill(.regularMaterial)
                             .overlay(
                                 RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                    .stroke(NeonPalette.tileEdge, lineWidth: 1)
+                                    .stroke(Color.white.opacity(0.15), lineWidth: 1)
                             )
                     )
                 }
@@ -131,13 +130,12 @@ struct ActionBar: View {
             .padding(.vertical, 10)
             .background(
                 RoundedRectangle(cornerRadius: 14, style: .continuous)
-                    .fill(NeonPalette.bg0.opacity(0.7))
+                    .fill(.ultraThinMaterial)
                     .overlay(
                         RoundedRectangle(cornerRadius: 14, style: .continuous)
-                            .stroke(color.opacity(0.55), lineWidth: 1)
+                            .stroke(color.opacity(0.35), lineWidth: 1)
                     )
             )
-            .neonGlow(color, radius: 5, intensity: 0.55)
         }
         .buttonStyle(.plain)
     }
@@ -163,13 +161,12 @@ struct ActionBar: View {
             .padding(.vertical, 10)
             .background(
                 RoundedRectangle(cornerRadius: 14, style: .continuous)
-                    .fill(NeonPalette.bg0.opacity(0.7))
+                    .fill(.ultraThinMaterial)
                     .overlay(
                         RoundedRectangle(cornerRadius: 14, style: .continuous)
-                            .stroke(color.opacity(0.55), lineWidth: 1)
+                            .stroke(color.opacity(0.35), lineWidth: 1)
                     )
             )
-            .neonGlow(color, radius: 5, intensity: 0.55)
         }
         .buttonStyle(.plain)
     }

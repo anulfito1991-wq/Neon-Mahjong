@@ -65,13 +65,13 @@ final class AdManager: NSObject {
     /// Safe to call multiple times.
     func bootstrap() async {
         guard !didBootstrap else { return }
-        if ScreenshotMode.isActive {
-            didBootstrap = true
-            return
-        }
+        // Set the flag BEFORE the awaits: this method suspends twice, and a
+        // second caller arriving during a suspension would otherwise pass the
+        // guard and double-request ATT / double-start the SDK.
+        didBootstrap = true
+        if ScreenshotMode.isActive { return }
         await requestTrackingConsent()
         let _ = await MobileAds.shared.start()
-        didBootstrap = true
         await preloadRewarded()
         await preloadInterstitial()
     }
@@ -94,11 +94,19 @@ final class AdManager: NSObject {
     func showRewarded(_ kind: RewardKind) async -> Bool {
         if IAPManager.shared.isAdsRemoved { return true }
         if ScreenshotMode.isActive { return true }
+        // Re-entrancy guard: a second present while one is on screen would
+        // overwrite the stored continuation, leaking the first one and
+        // hanging its caller forever.
+        guard !isPresenting else { return false }
+        // Claim the presentation slot before the preload suspension — the
+        // guard above can't protect across an await.
+        isPresenting = true
 
         if rewardedAd == nil {
             await preloadRewarded()
         }
         guard let ad = rewardedAd, let rootVC = Self.topMostViewController() else {
+            isPresenting = false
             return false
         }
         rewardedAd = nil
@@ -109,7 +117,6 @@ final class AdManager: NSObject {
                          from rootVC: UIViewController) async -> Bool {
         rewardEarned = false
         ad.fullScreenContentDelegate = self
-        isPresenting = true
         return await withCheckedContinuation { continuation in
             rewardContinuation = continuation
             ad.present(from: rootVC) { [weak self] in
@@ -137,13 +144,17 @@ final class AdManager: NSObject {
     func showInterstitialIfDue() async {
         if IAPManager.shared.isAdsRemoved { return }
         if ScreenshotMode.isActive { return }
+        // Same re-entrancy guard as showRewarded — never stack presentations.
+        guard !isPresenting else { return }
 
         interstitialCounter += 1
         guard interstitialCounter % interstitialEveryNGames == 0 else { return }
+        isPresenting = true
         if interstitialAd == nil {
             await preloadInterstitial()
         }
         guard let ad = interstitialAd, let rootVC = Self.topMostViewController() else {
+            isPresenting = false
             return
         }
         interstitialAd = nil
@@ -153,7 +164,6 @@ final class AdManager: NSObject {
     private func present(interstitial ad: InterstitialAd,
                          from rootVC: UIViewController) async {
         ad.fullScreenContentDelegate = self
-        isPresenting = true
         await withCheckedContinuation { continuation in
             interstitialContinuation = continuation
             ad.present(from: rootVC)

@@ -1,6 +1,7 @@
 import Foundation
 import Observation
 import SwiftUI
+import UIKit
 
 /// Configuration for a game session.
 struct GameSession: Hashable, Sendable {
@@ -37,25 +38,27 @@ final class GameViewModel {
     private(set) var elapsedSeconds: Int = 0
     private(set) var phase: GamePhase = .playing
 
-    /// Free hints spent in the current game. Once this reaches `freeHintCap`,
-    /// the player must watch a rewarded ad (or have purchased Remove Ads).
-    private(set) var hintsUsedThisGame: Int = 0
-
     /// Free-hint cap per game. Effectively unlimited once Remove Ads is owned.
     var freeHintCap: Int {
         IAPManager.shared.isAdsRemoved ? .max : 3
     }
 
     var freeHintsRemaining: Int {
-        max(0, freeHintCap - hintsUsedThisGame)
+        max(0, freeHintCap - hintsUsed)
     }
 
     var hasFreeHintsRemaining: Bool { freeHintsRemaining > 0 }
 
     private(set) var session: GameSession
 
+    /// IDs of currently-free tiles, recomputed once per board mutation in
+    /// `refreshFreeTiles()`. The board view asks `isFree(_:)` for every tile
+    /// on every body evaluation — answering from this cached set keeps that
+    /// O(1) instead of rebuilding a position dictionary per query (O(N²) per
+    /// render frame at 144 tiles).
+    private var freeIDs: Set<UUID> = []
+
     private var moveHistory: [(UUID, UUID)] = []
-    private var positionIndex: [TilePosition: UUID] = [:]
     private var timerTask: Task<Void, Never>?
     private var hasRecordedWin: Bool = false
 
@@ -63,6 +66,11 @@ final class GameViewModel {
         self.session = session
         startNewGame(session: session)
     }
+
+    // No deinit needed for the timer: the loop's `guard let self else
+    // { return }` exits the task within one tick of this object being
+    // deallocated. (The previous version checked `weak self` only inside a
+    // nested closure, so the loop ran forever after dealloc.)
 
     // MARK: - Lifecycle
 
@@ -72,19 +80,18 @@ final class GameViewModel {
                                                         seed: self.session.seed)
         tiles = board
         activeIDs = Set(board.map(\.id))
-        positionIndex = Dictionary(uniqueKeysWithValues: board.map { ($0.position, $0.id) })
         selectedID = nil
         hintIDs = []
         mismatchIDs = []
         matchedPairs = 0
         hintsUsed = 0
-        hintsUsedThisGame = 0
         undosUsed = 0
         shufflesUsed = 0
         elapsedSeconds = 0
         moveHistory = []
         phase = .playing
         hasRecordedWin = false
+        refreshFreeTiles()
         GameStats.shared.recordGameStart()
         startTimer()
     }
@@ -100,9 +107,12 @@ final class GameViewModel {
         timerTask = Task { [weak self] in
             while !Task.isCancelled {
                 try? await Task.sleep(nanoseconds: 1_000_000_000)
-                await MainActor.run {
-                    guard let self else { return }
-                    if self.phase == .playing { self.elapsedSeconds += 1 }
+                guard let self else { return }
+                // Don't charge the player for time spent outside the app —
+                // the score formula docks 2 points per second.
+                if self.phase == .playing,
+                   UIApplication.shared.applicationState == .active {
+                    self.elapsedSeconds += 1
                 }
             }
         }
@@ -124,12 +134,14 @@ final class GameViewModel {
                 activeIDs.remove(pair.1.id)
                 matchedPairs += 1
                 cleared += 1
+                refreshFreeTiles()
             }
             phase = .playing
         case .win:
             elapsedSeconds = 218
             matchedPairs = totalPairs
             activeIDs.removeAll()
+            refreshFreeTiles()
             phase = .won
         default:
             break
@@ -161,15 +173,14 @@ final class GameViewModel {
 
     var activeTiles: [Tile] { tiles.filter { activeIDs.contains($0.id) } }
 
-    private var activeByPosition: [TilePosition: Tile] {
-        Dictionary(uniqueKeysWithValues: activeTiles.map { ($0.position, $0) })
-    }
-
     func tile(id: UUID) -> Tile? { tiles.first { $0.id == id } }
 
-    func isFree(_ tile: Tile) -> Bool {
-        guard activeIDs.contains(tile.id) else { return false }
-        return MahjongEngine.isFree(tile: tile, activeByPosition: activeByPosition)
+    func isFree(_ tile: Tile) -> Bool { freeIDs.contains(tile.id) }
+
+    /// Recomputes the free-tile cache. Must be called after every mutation of
+    /// `activeIDs` or `tiles`.
+    private func refreshFreeTiles() {
+        freeIDs = Set(MahjongEngine.freeTiles(active: activeTiles).map(\.id))
     }
 
     // MARK: - Actions
@@ -219,6 +230,7 @@ final class GameViewModel {
         activeIDs.remove(b.id)
         moveHistory.append((a.id, b.id))
         matchedPairs += 1
+        refreshFreeTiles()
         SoundManager.shared.play(.match)
         SoundManager.shared.haptic(.match)
         evaluatePhase()
@@ -245,7 +257,6 @@ final class GameViewModel {
     private func performHint() {
         guard let pair = findHintPair() else { return }
         hintsUsed += 1
-        hintsUsedThisGame += 1
         hintIDs = [pair.0.id, pair.1.id]
         SoundManager.shared.play(.hint)
         SoundManager.shared.haptic(.button)
@@ -256,6 +267,11 @@ final class GameViewModel {
     }
 
     func undo() {
+        // A won game is final: the win is already recorded and submitted to
+        // Game Center. Allowing undo here would resurrect the board into
+        // .playing with a stale recorded outcome. Undo from .stuck is fine —
+        // it's one of the two legitimate escape hatches.
+        guard phase == .playing || phase == .stuck else { return }
         guard let last = moveHistory.popLast() else { return }
         activeIDs.insert(last.0)
         activeIDs.insert(last.1)
@@ -264,6 +280,7 @@ final class GameViewModel {
         selectedID = nil
         hintIDs = []
         mismatchIDs = []
+        refreshFreeTiles()
         SoundManager.shared.haptic(.button)
         evaluatePhase()
     }
@@ -294,18 +311,18 @@ final class GameViewModel {
         }
         tiles = newTiles
         activeIDs = newActive
-        positionIndex = Dictionary(uniqueKeysWithValues: tiles.map { ($0.position, $0.id) })
         moveHistory = []
         selectedID = nil
         hintIDs = []
         mismatchIDs = []
+        refreshFreeTiles()
         evaluatePhase()
     }
 
     // MARK: - Helpers
 
     private func findHintPair() -> (Tile, Tile)? {
-        let free = MahjongEngine.freeTiles(active: activeTiles)
+        let free = tiles.filter { freeIDs.contains($0.id) }
         for i in 0..<free.count {
             for j in (i + 1)..<free.count where free[i].kind.matches(free[j].kind) {
                 return (free[i], free[j])

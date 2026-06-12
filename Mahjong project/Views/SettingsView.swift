@@ -105,6 +105,7 @@ struct SettingsView: View {
                             .buttonStyle(.plain)
                         }
 
+                        #if DEBUG
                         section(title: "DEVELOPER") {
                             Button {
                                 SoundManager.shared.haptic(.button)
@@ -131,6 +132,7 @@ struct SettingsView: View {
                             }
                             .buttonStyle(.plain)
                         }
+                        #endif
 
                         section(title: "ABOUT") {
                             HStack {

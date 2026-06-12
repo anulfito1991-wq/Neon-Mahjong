@@ -24,8 +24,9 @@ enum NeonPalette {
 }
 
 extension TileKind {
-    /// Primary glow color, derived from suit. MainActor-isolated because it
-    /// reads through `ThemeStore`.
+    /// Accent color for this suit on DARK surfaces (selection halos, HUD).
+    /// Reads through the active theme. MainActor-isolated because it reads
+    /// through `ThemeStore`.
     @MainActor
     var neonColor: Color {
         switch self {
@@ -38,6 +39,25 @@ extension TileKind {
         case .dragon(.white):   return NeonPalette.white
         case .flower:           return NeonPalette.yellow
         case .season:           return NeonPalette.orange
+        }
+    }
+
+    /// Engraved-ink glyph color for this suit on IVORY tile faces.
+    /// Deliberately theme-independent: a physical Mahjong set keeps its ink
+    /// colors no matter what table it sits on — themes differentiate via the
+    /// table and bone tint instead. Traditional set colors: characters red,
+    /// bamboo green, dots blue, winds ink-black, white dragon slate.
+    var inkColor: Color {
+        switch self {
+        case .characters:       return Color(red: 0.64, green: 0.18, blue: 0.13)
+        case .bamboo:           return Color(red: 0.16, green: 0.42, blue: 0.28)
+        case .dots:             return Color(red: 0.15, green: 0.28, blue: 0.42)
+        case .wind:             return Color(red: 0.16, green: 0.15, blue: 0.16)
+        case .dragon(.red):     return Color(red: 0.64, green: 0.18, blue: 0.13)
+        case .dragon(.green):   return Color(red: 0.16, green: 0.42, blue: 0.28)
+        case .dragon(.white):   return Color(red: 0.38, green: 0.47, blue: 0.55)
+        case .flower:           return Color(red: 0.58, green: 0.42, blue: 0.13)
+        case .season:           return Color(red: 0.55, green: 0.30, blue: 0.12)
         }
     }
 

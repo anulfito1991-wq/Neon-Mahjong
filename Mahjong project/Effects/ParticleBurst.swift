@@ -7,11 +7,17 @@ struct BurstSpec: Identifiable, Equatable {
     let position: CGPoint
     let color: Color
     let createdAt: Date = .now
+
+    /// Single source of truth for the ripple duration. The prune pass in
+    /// `ParticleBurstLayer` derives its cutoff from this — previously the two
+    /// were independent magic numbers and pruning (0.8s) cut the animation
+    /// (0.9s) short on every single ripple.
+    static let lifetime: Double = 0.9
 }
 
 struct ParticleBurst: View {
     let spec: BurstSpec
-    let lifetime: Double = 0.9
+    private var lifetime: Double { BurstSpec.lifetime }
 
     @State private var progress: CGFloat = 0
 
@@ -59,10 +65,15 @@ struct ParticleBurstLayer: View {
                 ParticleBurst(spec: spec)
             }
         }
-        .onChange(of: bursts) { _, _ in
+        .onChange(of: bursts) { old, new in
+            // Only schedule a prune when something was ADDED — pruning also
+            // mutates the array, and reacting to our own removal would spawn
+            // an endless chain of prune tasks.
+            guard new.count > old.count else { return }
             Task { @MainActor in
-                try? await Task.sleep(nanoseconds: 800_000_000)
-                let cutoff = Date().addingTimeInterval(-0.8)
+                let margin = BurstSpec.lifetime + 0.15
+                try? await Task.sleep(nanoseconds: UInt64(margin * 1_000_000_000))
+                let cutoff = Date().addingTimeInterval(-BurstSpec.lifetime)
                 bursts.removeAll { $0.createdAt < cutoff }
             }
         }

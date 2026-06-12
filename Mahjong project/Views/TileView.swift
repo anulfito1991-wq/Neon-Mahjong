@@ -1,6 +1,7 @@
 import SwiftUI
 
-/// A single Mahjong tile rendered with neon glow.
+/// A single Mahjong tile, rendered as a physical ivory tile: bone face,
+/// engraved ink glyph, beveled edges, drop shadow lifting it off the table.
 struct TileView: View {
     let tile: Tile
     let size: CGSize
@@ -10,46 +11,56 @@ struct TileView: View {
     let isFree: Bool
     let onTap: () -> Void
 
-    private var color: Color { tile.kind.neonColor }
-
     var body: some View {
-        let radius = size.width * 0.18
+        let radius = size.width * 0.16
         return ZStack {
-            // Painted river-stone face — gradient + grain + inner shadow.
-            // Per-tile seed gives each stone a unique speckle pattern.
+            // Ivory bone face — gradient + grain + bevel.
             PaintedTileFace(seed: tileSeed, cornerRadius: radius)
 
-            // Inner border (suit-tinted on free tiles)
+            // Border: quiet tan at rest; gold for selection/hint, red for
+            // mismatch. Traditional tiles aren't color-coded by suit border —
+            // state is the only thing the border communicates.
             RoundedRectangle(cornerRadius: radius, style: .continuous)
                 .stroke(borderColor, lineWidth: borderWidth)
 
-            // Selection / hint outer halo
-            if isSelected || isHinted {
+            // Selection / hint outer halo (on the dark table, not the face)
+            if isSelected || isHinted || isMismatched {
                 RoundedRectangle(cornerRadius: radius, style: .continuous)
                     .stroke(haloColor, lineWidth: 2)
-                    .blur(radius: 2)
-                    .opacity(0.9)
+                    .blur(radius: 2.5)
+                    .opacity(0.85)
             }
 
-            // Glyphs
+            // Engraved glyphs — fixed traditional ink colors (red/green/
+            // blue/ink), with a hairline light shadow below the strokes so
+            // the ink reads carved into the bone rather than printed on it.
             VStack(spacing: size.height * 0.02) {
                 Text(tile.kind.primaryGlyph)
                     .font(.system(size: size.height * 0.46,
-                                  weight: .heavy,
-                                  design: .rounded))
-                    .foregroundStyle(color)
+                                  weight: .bold,
+                                  design: .serif))
+                    .foregroundStyle(tile.kind.inkColor)
                 if let suit = tile.kind.suitGlyph {
                     Text(suit)
-                        .font(.system(size: size.height * 0.18,
+                        .font(.system(size: size.height * 0.17,
                                       weight: .semibold,
-                                      design: .rounded))
-                        .foregroundStyle(color.opacity(0.85))
+                                      design: .serif))
+                        .foregroundStyle(tile.kind.inkColor.opacity(0.8))
                 }
             }
-            .neonGlow(color, radius: glowRadius, intensity: glowIntensity)
-            .opacity(isFree ? 1.0 : 0.55)
+            .shadow(color: .white.opacity(0.55), radius: 0.4, x: 0, y: 0.8)
+
+            // Covered tiles fall into shade instead of going transparent —
+            // dimming the face keeps the ivory material readable while
+            // making "playable" unmistakable.
+            RoundedRectangle(cornerRadius: radius, style: .continuous)
+                .fill(Color.black.opacity(isFree ? 0 : 0.32))
         }
         .frame(width: size.width, height: size.height)
+        .compositingGroup()
+        .shadow(color: .black.opacity(isFree ? 0.40 : 0.25),
+                radius: isSelected ? 6 : 3,
+                x: 0, y: isSelected ? 4 : 2)
         .scaleEffect(scale)
         .modifier(MismatchShake(active: isMismatched))
         .animation(.spring(response: 0.25, dampingFraction: 0.7), value: isSelected)
@@ -67,41 +78,29 @@ struct TileView: View {
     }
 
     private var borderColor: Color {
-        if isMismatched      { return NeonPalette.red }
-        if isSelected        { return color }
-        if isHinted          { return NeonPalette.yellow }
-        if isFree            { return color.opacity(0.55) }
+        if isMismatched { return NeonPalette.red }
+        if isSelected   { return NeonPalette.yellow }
+        if isHinted     { return NeonPalette.yellow }
         return NeonPalette.tileEdge
     }
 
     private var borderWidth: CGFloat {
-        (isSelected || isMismatched) ? 2.4 : (isHinted ? 2.0 : 1.2)
+        (isSelected || isMismatched) ? 2.4 : (isHinted ? 2.0 : 1.0)
     }
 
     private var haloColor: Color {
         if isMismatched { return NeonPalette.red }
-        if isHinted     { return NeonPalette.yellow }
-        return color
+        return NeonPalette.yellow
     }
 
-    private var glowRadius: CGFloat {
-        if isSelected { return 14 }
-        if isHinted   { return 12 }
-        if isFree     { return 6 }
-        return 2
-    }
-
-    private var glowIntensity: CGFloat {
-        if isSelected { return 1.4 }
-        if isHinted   { return 1.2 }
-        if isFree     { return 0.7 }
-        return 0.25
-    }
-
-    /// Per-tile seed for the painted-face speckle. Tile.id is a UUID; mix its
-    /// hash bits into a UInt64 so each stone has a unique grain.
+    /// Deterministic per-slot seed for the painted-face grain. Derived from
+    /// the board POSITION, not the tile UUID: positions survive shuffles and
+    /// launches (UUID.hashValue does neither), so tile textures never
+    /// invalidate en masse mid-animation.
     private var tileSeed: UInt64 {
-        UInt64(bitPattern: Int64(tile.id.hashValue))
+        let p = tile.position
+        let mixed = p.col &* 73_856_093 ^ p.row &* 19_349_663 ^ p.layer &* 83_492_791
+        return UInt64(bitPattern: Int64(mixed))
     }
 }
 

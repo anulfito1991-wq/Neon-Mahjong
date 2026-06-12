@@ -40,9 +40,11 @@ extension Theme {
             white:    Color(red: 0.93, green: 0.88, blue: 0.78),  // warm bone
             yellow:   Color(red: 0.85, green: 0.70, blue: 0.38),  // aged gold
             orange:   Color(red: 0.82, green: 0.55, blue: 0.36),  // copper
-            // Dark river stone (slightly warmer than bg, with a hint of slate)
-            tileFace: Color(red: 0.20, green: 0.18, blue: 0.16),
-            tileEdge: Color(red: 0.38, green: 0.34, blue: 0.30),
+            // Ivory bone tile — light tiles on the dark table is the
+            // traditional-set look (v1.1 restyle). tileEdge doubles as the
+            // resting tile border and subtle strokes on dark cards.
+            tileFace: Color(red: 0.93, green: 0.89, blue: 0.80),
+            tileEdge: Color(red: 0.72, green: 0.65, blue: 0.53),
             textDim:  Color(red: 0.80, green: 0.74, blue: 0.64)
         )
     )
@@ -66,8 +68,8 @@ extension Theme {
             white:    Color(red: 0.96, green: 0.90, blue: 0.78),
             yellow:   Color(red: 0.95, green: 0.75, blue: 0.32),
             orange:   Color(red: 0.96, green: 0.55, blue: 0.25),
-            tileFace: Color(red: 0.24, green: 0.15, blue: 0.11),
-            tileEdge: Color(red: 0.46, green: 0.28, blue: 0.20),
+            tileFace: Color(red: 0.95, green: 0.88, blue: 0.76),  // amber bone
+            tileEdge: Color(red: 0.76, green: 0.64, blue: 0.48),
             textDim:  Color(red: 0.88, green: 0.74, blue: 0.58)
         )
     )
@@ -91,8 +93,8 @@ extension Theme {
             white:    Color(red: 0.97, green: 0.92, blue: 0.95),
             yellow:   Color(red: 0.95, green: 0.82, blue: 0.62),  // soft gold
             orange:   Color(red: 0.92, green: 0.72, blue: 0.75),  // peach blossom
-            tileFace: Color(red: 0.20, green: 0.15, blue: 0.22),
-            tileEdge: Color(red: 0.40, green: 0.30, blue: 0.42),
+            tileFace: Color(red: 0.96, green: 0.90, blue: 0.88),  // blush bone
+            tileEdge: Color(red: 0.78, green: 0.67, blue: 0.66),
             textDim:  Color(red: 0.90, green: 0.82, blue: 0.92)
         )
     )
@@ -116,8 +118,8 @@ extension Theme {
             white:    Color(red: 0.92, green: 0.95, blue: 0.90),
             yellow:   Color(red: 0.88, green: 0.85, blue: 0.55),  // pollen
             orange:   Color(red: 0.85, green: 0.65, blue: 0.40),
-            tileFace: Color(red: 0.12, green: 0.18, blue: 0.15),
-            tileEdge: Color(red: 0.30, green: 0.40, blue: 0.34),
+            tileFace: Color(red: 0.92, green: 0.93, blue: 0.84),  // cool bone
+            tileEdge: Color(red: 0.70, green: 0.74, blue: 0.60),
             textDim:  Color(red: 0.78, green: 0.88, blue: 0.80)
         )
     )

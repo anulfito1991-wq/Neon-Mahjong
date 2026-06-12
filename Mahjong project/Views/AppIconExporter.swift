@@ -1,3 +1,4 @@
+#if DEBUG
 import SwiftUI
 import UIKit
 
@@ -25,3 +26,4 @@ enum AppIconExporter {
         }
     }
 }
+#endif
